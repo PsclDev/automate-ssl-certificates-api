@@ -35,8 +35,10 @@ func main() {
 
 	v1 := app.Group("/api/v1")
 	
-	ssl := v1.Group("/ssl")
-	ssl.Get("/", handlers.GetAll)
+	config := v1.Group("/config")
+	config.Get("/root", handlers.GetMakeRoot)
+	config.Get("/certificate", handlers.GetMakeCertificate)
+	config.Post("/", handlers.PostConfig)
 
 	app.Get("/health", handlers.HealthCheck)
 	app.Use(handlers.NotFound)
