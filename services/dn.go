@@ -3,39 +3,51 @@ package services
 import (
 	"api/models"
 	"fmt"
+	"os"
 	"strings"
 
 	"golang.org/x/exp/slices"
 )
 
 func SetConfig(domainName *models.DomainName) error {
-	if err := setConfig(MakeRootFileName, domainName); err != nil {
+	if err := setConfig(MakeRootFileName, domainName, true); err != nil {
 		return err
 	}
-	if err := setConfig(MakeCertFileName, domainName); err != nil {
+	if err := setConfig(MakeCertFileName, domainName, false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func setConfig(filename string, domainName *models.DomainName) error {
-	rootFile, err := ReadFile(filename)
+func setConfig(filename string, domainName *models.DomainName, isRoot bool) error {
+	file, err := ReadMakeFile(filename)
 	if err != nil {
 		return err
 	}
 
-	rootFile = replaceAllVariables(domainName, rootFile)
-	if err = WriteFile(filename, rootFile); err != nil {
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	rootPath := fmt.Sprintf("%s/%s/%s/%s", workingDir, BaseDir, certDir, "root")
+	if isRoot {
+		file = replaceVariable(file, "yourPath", rootPath)
+	} else {
+		file = replaceVariable(file, "yourPath", fmt.Sprintf("%s/%s/%s", workingDir, BaseDir, certDir))
+		file = replaceVariable(file, "rootPath", rootPath)
+	}
+
+	file = replaceDomainNames(domainName, file)
+	if err = WriteFile(filename, file); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func replaceAllVariables(domainName *models.DomainName, fileContent string) string {
-	fileContent = replaceVariable(fileContent, "yourPath", BaseDir)
-	fileContent = replaceVariable(fileContent, "rootPath", fmt.Sprintf("%s/%s/root", BaseDir, certDir))
+func replaceDomainNames(domainName *models.DomainName, fileContent string) string {
 	fileContent = replaceVariable(fileContent, "C", domainName.Country)
 	fileContent = replaceVariable(fileContent, "ST", domainName.State)
 	fileContent = replaceVariable(fileContent, "L", domainName.Location)

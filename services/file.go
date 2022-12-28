@@ -1,10 +1,12 @@
 package services
 
 import (
+	"archive/zip"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const BaseDir string = "_data"
@@ -14,7 +16,8 @@ const MakeCertFileName string = "makeCertificate.sh"
 
 func getFilepath(filename string, isCert bool) string {
 	if isCert {
-		return fmt.Sprintf("%s/%s/%s", BaseDir, certDir, filename)	
+		folder := strings.Split(filename, ".")[0]
+		return fmt.Sprintf("%s/%s/%s/%s", BaseDir, certDir, folder, filename)	
 	}
 
 	return fmt.Sprintf("%s/%s", BaseDir, filename)
@@ -30,6 +33,15 @@ func createDataFolder() error {
 		return nil
 	}
 	return err
+}
+
+func checkIfCertExists(name string) (bool, error) {
+	path := getFilepath(name, true)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return true, err
+	}
+
+	return false, nil
 }
 
 func MakePath(filename string) (string, error) {
@@ -83,16 +95,123 @@ func WriteFile(filename string, content string) error {
 	return nil
 }
 
-func ReadFile(filename string) (string, error) {
+func ReadMakeFile(filename string) (string, error) {
 	path, err := MakePath(filename)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return string(content), nil
+}
+
+func CreateCertArchive(name string) (string, error) {
+	crtName := fmt.Sprintf("%s.crt", name)
+	crtPath := getFilepath(crtName, true)
+	zipName := fmt.Sprintf("%s.zip", name)
+	zipPath := getFilepath(zipName, true)
+
+	crtInfo, err := os.Stat(crtPath)
+	if err != nil {
+		return "", err
+	}
+
+	zipExists := true
+	zipInfo, err := os.Stat(zipPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			zipExists = false
+		} else {
+			return "", err
+		}
+	}
+
+	if (zipExists && zipInfo.ModTime().After(crtInfo.ModTime())) {
+		return zipPath, nil
+	}
+
+	archive, err := os.Create(zipPath)
+	if err != nil {
+		return "", err
+	}
+	defer archive.Close()
+	zipWriter := zip.NewWriter(archive)
+
+	forZip := [...]string{"crt", "csr", "key"}
+	
+	for _, ext := range forZip {
+		filename := fmt.Sprintf("%s.%s", name, ext)
+		file, err := os.Open(getFilepath(filename, true))
+		if err != nil {
+		if os.IsNotExist(err) {
+			continue
+		} else {
+			return "", err
+		}
+	}
+
+		writer, err := zipWriter.Create(filename)
+		if err != nil {
+			return "", err
+		}
+
+		if _, err := io.Copy(writer, file); err != nil {
+			return "", err
+		}
+	}
+
+	zipWriter.Close()
+	return zipPath, nil
+}
+
+func CreateCompleteArchive() (string, error) {
+	zipPath := getFilepath("archive.zip", false)
+
+	archive, err := os.Create(zipPath)
+	if err != nil {
+		return "", err
+	}
+	defer archive.Close()
+	zipWriter := zip.NewWriter(archive)
+
+	certPath := fmt.Sprintf("%s/%s", BaseDir, certDir)
+	directories, err := os.ReadDir(certPath)
+	if err != nil {
+		return "", err
+	}
+	
+	for _, directory := range directories {
+		if !directory.IsDir() {
+			continue
+		}
+
+		dirPath := fmt.Sprintf("%s/%s/%s", BaseDir, certDir, directory.Name())
+		files, err := os.ReadDir(dirPath)
+		if err != nil {
+			return "", err
+		}
+
+		for _, file := range files {
+			file, err := os.Open(getFilepath(file.Name(), true))
+			if err != nil {
+				return "", err
+			}
+
+			writer, err := zipWriter.Create(file.Name())
+			if err != nil {
+				return "", err
+			}
+
+			if _, err := io.Copy(writer, file); err != nil {
+				return "", err
+			}
+		}
+	}
+
+	zipWriter.Close()
+	return zipPath, nil
 }

@@ -15,12 +15,9 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Failed to load envs")
-	}
+	godotenv.Load()
 
-	err = sentry.Init(sentry.ClientOptions{
+	err := sentry.Init(sentry.ClientOptions{
 		Dsn: os.Getenv("SENTRY_DSN"),
 	})
 	if err != nil {
@@ -39,6 +36,14 @@ func main() {
 	config.Get("/root", handlers.GetMakeRoot)
 	config.Get("/certificate", handlers.GetMakeCertificate)
 	config.Post("/", handlers.PostConfig)
+
+	cert := v1.Group("/cert")
+	cert.Get("/", handlers.GetAllCerts)
+	cert.Get("/root", handlers.GetRootCert)
+	cert.Get("/:name", handlers.GetCertByName)
+	cert.Post("/", handlers.CreateCert)
+	cert.Patch("/", handlers.RecreateCert)
+	cert.Delete("/:name", handlers.DeleteCert)
 
 	app.Get("/health", handlers.HealthCheck)
 	app.Use(handlers.NotFound)

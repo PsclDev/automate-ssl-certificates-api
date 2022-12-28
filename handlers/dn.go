@@ -12,7 +12,7 @@ import (
 func GetMakeRoot(ctx *fiber.Ctx) error {
 	path, err := services.MakePath(services.MakeRootFileName)
 	if err != nil {
-		return ctx.Status(500).SendString(err.Error())
+		return errorResponse(ctx, err)
 	}
 
 	return ctx.Status(200).SendFile(path)
@@ -21,7 +21,7 @@ func GetMakeRoot(ctx *fiber.Ctx) error {
 func GetMakeCertificate(ctx *fiber.Ctx) error {
 	path, err := services.MakePath(services.MakeCertFileName)
 	if err != nil {
-		return ctx.Status(500).SendString(err.Error())
+		return errorResponse(ctx, err)
 	}
 
 	return ctx.Status(200).SendFile(path)
@@ -31,7 +31,7 @@ func PostConfig(ctx *fiber.Ctx) error {
 	domainName := new(models.DomainName)
 
 	if err := ctx.BodyParser(domainName); err != nil {
-		return err
+		return errorResponse(ctx, err)
 	}
 	v := validator.New()
 	err := v.Struct(domainName)
@@ -43,7 +43,9 @@ func PostConfig(ctx *fiber.Ctx) error {
 		return ctx.Status(400).SendString(errors)
 	}
 	
-	services.SetConfig(domainName)
+	if err := services.SetConfig(domainName); err != nil {
+		return errorResponse(ctx, err)
+	}
 
 	return ctx.Status(200).SendString("Config was set")
 }
