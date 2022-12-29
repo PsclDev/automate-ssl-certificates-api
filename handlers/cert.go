@@ -7,12 +7,14 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/kpango/glg"
 )
 
 const defaultResponse string = "json"
 
 func GetAllCerts(ctx *fiber.Ctx) error {
 	res := ctx.Query("res", defaultResponse)
+	glg.Tracef("GetAllCerts | with response type '%s'", res)
 
 	switch res {
 	case "file":
@@ -30,10 +32,11 @@ func GetAllCerts(ctx *fiber.Ctx) error {
 		return ctx.Status(200).JSON(certs)
 	}
 
-	return invalidResponseType(ctx)
+	return invalidResponseType(ctx, res)
 }
 
 func GetRootCert(ctx *fiber.Ctx) error {
+	glg.Trace("GetRootCert")
 	err := services.CheckRootCertificate()
 	if err != nil {
 		return errorResponse(ctx, err)
@@ -50,6 +53,7 @@ func GetRootCert(ctx *fiber.Ctx) error {
 func GetCertByName(ctx *fiber.Ctx) error {
 	name := ctx.Params("name")
 	res := ctx.Query("res", defaultResponse)
+	glg.Tracef("GetCertByName | for name: '%s' with response type '%s'", name, res)
 
 	switch res {
 	case "file":
@@ -62,7 +66,7 @@ func GetCertByName(ctx *fiber.Ctx) error {
 		return ctx.Status(200).JSON(cert)
 	}
 
-	return invalidResponseType(ctx)
+	return invalidResponseType(ctx, res)
 }
 
 func CreateCert(ctx *fiber.Ctx) error {
@@ -80,6 +84,8 @@ func createCert(ctx *fiber.Ctx, forceCreate bool) error {
 	if err := ctx.BodyParser(cert); err != nil {
 		return ctx.Status(400).SendString("JSON Body missing")
 	}
+	glg.Tracef("createCert | with response type '%s' and cert '%s'", res, cert)
+
 	v := validator.New()
 	err := v.Struct(cert)
 	if err != nil {
@@ -87,6 +93,8 @@ func createCert(ctx *fiber.Ctx, forceCreate bool) error {
 		for _, e := range err.(validator.ValidationErrors) {
 			errors += fmt.Sprintf("%s\n", e)
 		}
+
+		glg.Warnf("createCert | cert validation failed, reason(s) '%s'", errors)
 		return ctx.Status(400).SendString(errors)
 	}
 
@@ -102,7 +110,7 @@ func createCert(ctx *fiber.Ctx, forceCreate bool) error {
 		return ctx.Status(200).JSON(cert)
 	}
 
-	return invalidResponseType(ctx)
+	return invalidResponseType(ctx, res)
 }
 
 
@@ -126,6 +134,7 @@ func certArchive(ctx *fiber.Ctx, certName string) error {
 
 func fileResponse(ctx *fiber.Ctx, filename, path string) error {
 	disposition := fmt.Sprintf("attachment; filename=\"%s\"", filename)
+	glg.Tracef("File response | with content-disposition: '%s'", disposition)
 	ctx.Set("Content-Disposition", disposition)
 	return ctx.Status(200).SendFile(path)
 }

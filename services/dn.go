@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/kpango/glg"
 	"golang.org/x/exp/slices"
 )
 
@@ -21,6 +22,7 @@ func SetConfig(domainName *models.DomainName) error {
 }
 
 func setConfig(filename string, domainName *models.DomainName, isRoot bool) error {
+	glg.Trace("setConfig | for '%s' with dn '%s'", filename, domainName)
 	file, err := ReadMakeFile(filename)
 	if err != nil {
 		return err
@@ -69,6 +71,7 @@ func replaceVariable(content string, variable string, value string) string {
 		return arrToString(arr)
 	}
 
+	glg.Tracef("replaceVariable '%s' with value '%s'", variable, value)
  	arr[idx] = fmt.Sprintf("%s=%s", variable, value)
  	return arrToString(arr)
  }

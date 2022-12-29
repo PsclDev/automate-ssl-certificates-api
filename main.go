@@ -3,7 +3,6 @@ package main
 import (
 	"api/handlers"
 	"fmt"
-	"log"
 	"os"
 
 	sentryfiber "github.com/aldy505/sentry-fiber"
@@ -12,17 +11,15 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
+	"github.com/kpango/glg"
 )
 
 func main() {
 	godotenv.Load()
 
-	err := sentry.Init(sentry.ClientOptions{
+	sentry.Init(sentry.ClientOptions{
 		Dsn: os.Getenv("SENTRY_DSN"),
 	})
-	if err != nil {
-		log.Fatal("Failed to initialize sentry")
-	}
 
 	app := fiber.New()
 
@@ -50,5 +47,5 @@ func main() {
 
 	port := os.Getenv("PORT")
 	listen := fmt.Sprintf(":%s", port)
-    log.Fatal(app.Listen(listen))
+	glg.Fatal(app.Listen(listen))
 }

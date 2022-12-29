@@ -7,10 +7,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/kpango/glg"
 )
 
 func GetAllCertsAsJson() ([]*models.Certificate, error) {
 	certPath := fmt.Sprintf("%s/%s", BaseDir, certDir)
+	glg.Tracef("GetAllCertsAsJson | get direcotries from cert path ''", certPath)
+
 	directories, err := os.ReadDir(certPath)
 	if err != nil {
 		return nil, err
@@ -20,6 +24,7 @@ func GetAllCertsAsJson() ([]*models.Certificate, error) {
 
 	for _, directory := range directories {
 		jsonPath := fmt.Sprintf("%s/%s/%s.json", certPath, directory.Name(), directory.Name())
+		glg.Tracef("GetAllCertsAsJson | read file from json path ''", jsonPath)
 
 		content, err := os.ReadFile(jsonPath)
 		if err != nil {
@@ -39,6 +44,7 @@ func GetAllCertsAsJson() ([]*models.Certificate, error) {
 
 func GetCertAsJson(name string) (*models.Certificate, error) {
 	jsonPath := fmt.Sprintf("%s/%s/%s/%s.json", BaseDir, certDir, name, name)
+	glg.Tracef("GetCertAsJson | read file from json path ''", jsonPath)
 
 	content, err := os.ReadFile(jsonPath)
 	if err != nil {
@@ -73,7 +79,7 @@ func CheckRootCertificate() error {
 
 func createRootCert() error {
 	if _, err := exec.Command("bash", getFilepath(MakeRootFileName, false)).Output(); err != nil {
-	return err
+		return err
 	}
 
 	return nil
@@ -89,18 +95,22 @@ func CreateCert(cert *models.Certificate, forceCreate bool) error {
 		return err
 	}
 	if exists && !forceCreate {
-		return errors.New("cert already exists, use PATCH to recreate")
+		glg.Trace("CreateCert | Cert already exists and was not forced to recreate")
+		return errors.New("CreateCert | cert already exists, use PATCH to recreate")
 	}
 
 	if _, err := exec.Command("bash", getFilepath(MakeCertFileName, false), "-d", cert.DNS, "-i", cert.IP, "-n", cert.Name).Output(); err != nil {
 		return err
 	}
+	glg.Trace("CreateCert | created")
 
 	return nil
 }
 
 func DeleteCert(certName string) error {
 	path := fmt.Sprintf("%s/%s/%s", BaseDir, certDir, certName)
+	glg.Tracef("DeleteCert | remove file from path ''", path)
+
 	if err := os.RemoveAll(path); err != nil {
 		return err
 	}

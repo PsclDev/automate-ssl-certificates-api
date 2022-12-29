@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/kpango/glg"
 )
 
 const BaseDir string = "_data"
@@ -29,18 +31,20 @@ func createDataFolder() error {
 	}
 
 	err := os.Mkdir(BaseDir, os.ModePerm); 
-	if err == nil {
-		return nil
+	if err != nil {
+		return err
 	}
-	return err
+	return nil
 }
 
 func checkIfCertExists(name string) (bool, error) {
 	path := getFilepath(name, true)
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
-		return true, err
+		glg.Tracef("checkIfCertExists | found '%s'", path)
+		return true, nil
 	}
 
+	glg.Tracef("checkIfCertExists | not found '%s'", path)
 	return false, nil
 }
 
@@ -56,6 +60,7 @@ func MakePath(filename string) (string, error) {
 
 func DownloadMakeFileTemplate(filename string) (string, error) {
 	url := fmt.Sprintf("https://raw.githubusercontent.com/PsclDev/automate-ssl-certificates/main/%s", filename)
+	glg.Tracef("DownloadMakeFileTemplate | from '%s'", url)
 	res, err:= http.Get(url)
 	if err != nil  {
    		return "", err
@@ -80,7 +85,9 @@ func WriteFile(filename string, content string) error {
     	return err
   	}
 
-	file, err := os.Create(getFilepath(filename, false))
+	path := getFilepath(filename, false)
+	glg.Tracef("WriteFile | to '%s'", path)
+	file, err := os.Create(path)
 	if err != nil  {
     	return err
   	}
@@ -131,6 +138,7 @@ func CreateCertArchive(name string) (string, error) {
 	}
 
 	if (zipExists && zipInfo.ModTime().After(crtInfo.ModTime())) {
+		glg.Tracef("CreateCertArchive | archive already exists '%s'", zipPath)
 		return zipPath, nil
 	}
 
@@ -145,9 +153,11 @@ func CreateCertArchive(name string) (string, error) {
 	
 	for _, ext := range forZip {
 		filename := fmt.Sprintf("%s.%s", name, ext)
-		file, err := os.Open(getFilepath(filename, true))
+		filepath := getFilepath(filename, true)
+		file, err := os.Open(filepath)
 		if err != nil {
 		if os.IsNotExist(err) {
+			glg.Tracef("CreateCertArchive | file not found, skipping '%s'", filepath)
 			continue
 		} else {
 			return "", err
@@ -179,6 +189,8 @@ func CreateCompleteArchive() (string, error) {
 	zipWriter := zip.NewWriter(archive)
 
 	certPath := fmt.Sprintf("%s/%s", BaseDir, certDir)
+	glg.Tracef("CreateCompleteArchive | cert path '%s'", certPath)
+
 	directories, err := os.ReadDir(certPath)
 	if err != nil {
 		return "", err
@@ -190,6 +202,8 @@ func CreateCompleteArchive() (string, error) {
 		}
 
 		dirPath := fmt.Sprintf("%s/%s/%s", BaseDir, certDir, directory.Name())
+		glg.Tracef("CreateCompleteArchive | files in '%s'", dirPath)
+
 		files, err := os.ReadDir(dirPath)
 		if err != nil {
 			return "", err
