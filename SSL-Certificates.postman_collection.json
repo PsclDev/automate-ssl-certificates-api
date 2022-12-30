@@ -1,0 +1,317 @@
+{
+	"info": {
+		"_postman_id": "258f6eaa-be46-4681-ad9c-a289f8ca57b3",
+		"name": "SSL-Certificates",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6729620"
+	},
+	"item": [
+		{
+			"name": "Config",
+			"item": [
+				{
+					"name": "Root",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Health-Check",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}{{v1}}/config/root",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"config",
+								"root"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Certificate",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Health-Check",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}{{v1}}/config/certificate",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"config",
+								"certificate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Config",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Health-Check",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"country\": \"US\",\n    \"state\": \"NY\",\n    \"location\": \"NY\",\n    \"domain\": \"crazy\",\n    \"tld\": \"tld\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}{{v1}}/config/",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"config",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cert",
+			"item": [
+				{
+					"name": "All",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}{{v1}}/cert/",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"cert",
+								""
+							],
+							"query": [
+								{
+									"key": "res",
+									"value": "file",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Root Cert",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}{{v1}}/cert/root",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"cert",
+								"root"
+							],
+							"query": [
+								{
+									"key": "res",
+									"value": "file",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "By Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}{{v1}}/cert/test",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"cert",
+								"test"
+							],
+							"query": [
+								{
+									"key": "res",
+									"value": "file",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"test321\",\n    \"ip\": \"10.0.0.1\",\n    \"dns\": \"test.tld\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}{{v1}}/cert/",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"cert",
+								""
+							],
+							"query": [
+								{
+									"key": "res",
+									"value": "file",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recreate",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"test\",\n    \"ip\": \"10.0.0.1\",\n    \"dns\": \"test.tld\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}{{v1}}/cert/",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"cert",
+								""
+							],
+							"query": [
+								{
+									"key": "res",
+									"value": "file",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}{{v1}}/cert/test2",
+							"host": [
+								"{{base_url}}{{v1}}"
+							],
+							"path": [
+								"cert",
+								"test2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health check",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Health-Check",
+						"value": "1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/health",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "dev.home:3001",
+			"type": "string"
+		},
+		{
+			"key": "v1",
+			"value": "/api/v1",
+			"type": "string"
+		}
+	]
+}
