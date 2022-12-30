@@ -2,6 +2,7 @@ package main
 
 import (
 	"api/handlers"
+	"api/util"
 	"fmt"
 	"os"
 
@@ -21,6 +22,20 @@ func main() {
 		Dsn: os.Getenv("SENTRY_DSN"),
 	})
 
+	if os.Getenv("NETLOG_URL") != "" {
+		glg.Get().
+		SetMode(glg.BOTH).
+		AddLevelWriter(glg.TRACE, util.NetworkLogger{}).
+		AddLevelWriter(glg.PRINT, util.NetworkLogger{}).
+		AddLevelWriter(glg.LOG, util.NetworkLogger{}).
+		AddLevelWriter(glg.INFO, util.NetworkLogger{}).
+		AddLevelWriter(glg.OK, util.NetworkLogger{}).
+		AddLevelWriter(glg.WARN, util.NetworkLogger{}).
+		AddLevelWriter(glg.ERR, util.NetworkLogger{}).
+		AddLevelWriter(glg.FAIL, util.NetworkLogger{}).
+		AddLevelWriter(glg.FATAL, util.NetworkLogger{})
+	}
+		
 	app := fiber.New()
 
 	app.Use(recover.New())
@@ -47,5 +62,6 @@ func main() {
 
 	port := os.Getenv("PORT")
 	listen := fmt.Sprintf(":%s", port)
+	glg.Infof("App listening on port %s", port)
 	glg.Fatal(app.Listen(listen))
 }
