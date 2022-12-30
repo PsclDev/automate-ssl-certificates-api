@@ -53,6 +53,19 @@ func MakePath(filename string) (string, error) {
 		if _, err = DownloadMakeFileTemplate(filename); err != nil {
 			return "", err
 		}
+
+		file, err := ReadMakeFile(filename)
+		if err != nil {
+			return "", err
+		}
+		file ,err = SetMinimalConfig(filename, file)
+		if err != nil {
+			return "", err
+		}
+		
+		if err = WriteFile(filename, file); err != nil {
+			return "", err
+		}
 	}
 	
 	return getFilepath(filename, false), nil

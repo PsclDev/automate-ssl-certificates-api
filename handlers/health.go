@@ -5,5 +5,7 @@ import (
 )
 
 func HealthCheck(ctx *fiber.Ctx) error {
-	return ctx.Status(200).SendString("Ok")
+	return ctx.Status(200).JSON(fiber.Map{
+		"status": "running",
+	})
 }

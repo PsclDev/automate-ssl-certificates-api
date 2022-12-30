@@ -44,7 +44,7 @@ func GetAllCertsAsJson() ([]*models.Certificate, error) {
 
 func GetCertAsJson(name string) (*models.Certificate, error) {
 	jsonPath := fmt.Sprintf("%s/%s/%s/%s.json", BaseDir, certDir, name, name)
-	glg.Tracef("GetCertAsJson | read file from json path ''", jsonPath)
+	glg.Tracef("GetCertAsJson | read file from json path '%s'", jsonPath)
 
 	content, err := os.ReadFile(jsonPath)
 	if err != nil {
@@ -78,7 +78,12 @@ func CheckRootCertificate() error {
 }
 
 func createRootCert() error {
-	if _, err := exec.Command("bash", getFilepath(MakeRootFileName, false)).Output(); err != nil {
+	path, err := MakePath(MakeRootFileName)
+	if err != nil {
+		return err
+	}
+
+	if _, err = exec.Command("bash", path).Output(); err != nil {
 		return err
 	}
 
@@ -96,10 +101,15 @@ func CreateCert(cert *models.Certificate, forceCreate bool) error {
 	}
 	if exists && !forceCreate {
 		glg.Trace("CreateCert | Cert already exists and was not forced to recreate")
-		return errors.New("CreateCert | cert already exists, use PATCH to recreate")
+		return errors.New("cert already exists and was not forced to recreate")
 	}
 
-	if _, err := exec.Command("bash", getFilepath(MakeCertFileName, false), "-d", cert.DNS, "-i", cert.IP, "-n", cert.Name).Output(); err != nil {
+	path, err := MakePath(MakeCertFileName)
+	if err != nil {
+		return err
+	}
+
+	if _, err := exec.Command("bash", path, "-d", cert.DNS, "-i", cert.IP, "-n", cert.Name).Output(); err != nil {
 		return err
 	}
 	glg.Trace("CreateCert | created")

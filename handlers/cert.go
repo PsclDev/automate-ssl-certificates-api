@@ -82,20 +82,14 @@ func createCert(ctx *fiber.Ctx, forceCreate bool) error {
 	cert := new(models.Certificate)
 
 	if err := ctx.BodyParser(cert); err != nil {
-		return ctx.Status(400).SendString("JSON Body missing")
+		return invalidBody(ctx)
 	}
 	glg.Tracef("createCert | with response type '%s' and cert '%s'", res, cert)
 
 	v := validator.New()
 	err := v.Struct(cert)
 	if err != nil {
-		errors := ""
-		for _, e := range err.(validator.ValidationErrors) {
-			errors += fmt.Sprintf("%s\n", e)
-		}
-
-		glg.Warnf("createCert | cert validation failed, reason(s) '%s'", errors)
-		return ctx.Status(400).SendString(errors)
+		return failedValidation(ctx, err)
 	}
 
 	if err := services.CreateCert(cert, forceCreate); err != nil {

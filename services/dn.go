@@ -21,6 +21,25 @@ func SetConfig(domainName *models.DomainName) error {
 	return nil
 }
 
+func SetMinimalConfig(makeFile string, file string) (string, error) {
+	workingDir, err := os.Getwd()
+	rootPath := fmt.Sprintf("%s/%s/%s/%s", workingDir, BaseDir, certDir, "root")
+
+	if err != nil {
+		return "", err
+	}
+
+	switch makeFile {
+	case MakeRootFileName:
+		file = replaceVariable(file, "yourPath", rootPath)
+	case MakeCertFileName:
+		file = replaceVariable(file, "yourPath", fmt.Sprintf("%s/%s/%s", workingDir, BaseDir, certDir))
+		file = replaceVariable(file, "rootPath", rootPath)
+	}
+
+	return file, nil
+}
+
 func setConfig(filename string, domainName *models.DomainName, isRoot bool) error {
 	glg.Trace("setConfig | for '%s' with dn '%s'", filename, domainName)
 	file, err := ReadMakeFile(filename)
@@ -28,17 +47,9 @@ func setConfig(filename string, domainName *models.DomainName, isRoot bool) erro
 		return err
 	}
 
-	workingDir, err := os.Getwd()
+	file, err = SetMinimalConfig(filename, file)
 	if err != nil {
 		return err
-	}
-
-	rootPath := fmt.Sprintf("%s/%s/%s/%s", workingDir, BaseDir, certDir, "root")
-	if isRoot {
-		file = replaceVariable(file, "yourPath", rootPath)
-	} else {
-		file = replaceVariable(file, "yourPath", fmt.Sprintf("%s/%s/%s", workingDir, BaseDir, certDir))
-		file = replaceVariable(file, "rootPath", rootPath)
 	}
 
 	file = replaceDomainNames(domainName, file)

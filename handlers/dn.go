@@ -3,7 +3,6 @@ package handlers
 import (
 	"api/models"
 	"api/services"
-	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -34,20 +33,14 @@ func PostConfig(ctx *fiber.Ctx) error {
 	domainName := new(models.DomainName)
 
 	if err := ctx.BodyParser(domainName); err != nil {
-		return errorResponse(ctx, err)
+		return invalidBody(ctx)
 	}
 	glg.Tracef("PostConfig | with domain name '%s'", domainName)
 
 	v := validator.New()
 	err := v.Struct(domainName)
 	if err != nil {
-		errors := ""
-		for _, e := range err.(validator.ValidationErrors) {
-			errors += fmt.Sprintf("%s\n", e)
-		}
-
-		glg.Warnf("PostConfig | domain name validation failed, reason(s) '%s'", errors)
-		return ctx.Status(400).SendString(errors)
+		return failedValidation(ctx, err)
 	}
 	
 	if err := services.SetConfig(domainName); err != nil {
