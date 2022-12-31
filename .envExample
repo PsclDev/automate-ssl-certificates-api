@@ -1,3 +1,4 @@
 PORT=3000
+PROD=false
 NETLOG_URL=url
 SENTRY_DSN=url

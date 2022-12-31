@@ -5,6 +5,7 @@ import (
 	"api/util"
 	"fmt"
 	"os"
+	"strconv"
 
 	sentryfiber "github.com/aldy505/sentry-fiber"
 	"github.com/getsentry/sentry-go"
@@ -17,6 +18,11 @@ import (
 
 func main() {
 	godotenv.Load()
+
+	prod, err := strconv.ParseBool(os.Getenv("PROD"))
+	if err != nil {
+		prod = false
+	}
 
 	sentry.Init(sentry.ClientOptions{
 		Dsn: os.Getenv("SENTRY_DSN"),
@@ -35,8 +41,10 @@ func main() {
 		AddLevelWriter(glg.FAIL, util.NetworkLogger{}).
 		AddLevelWriter(glg.FATAL, util.NetworkLogger{})
 	}
-		
-	app := fiber.New()
+
+	app := fiber.New(fiber.Config{
+		Prefork: prod,
+	})
 
 	app.Use(recover.New())
 	app.Use(logger.New())
@@ -62,6 +70,8 @@ func main() {
 
 	port := os.Getenv("PORT")
 	listen := fmt.Sprintf(":%s", port)
+	
 	glg.Infof("App listening on port %s", port)
+	glg.Infof("Prefork enabled? '%s'", strconv.FormatBool(prod))	
 	glg.Fatal(app.Listen(listen))
 }

@@ -3,13 +3,14 @@ The api is based on the [automate-ssl-certificates repo](https://github.com/Pscl
 
 ## Image
 ```
-docker pull ghcr.io/pscldev/automate-ssl-certificates-api:v1.0-alpha
+docker pull ghcr.io/pscldev/automate-ssl-certificates-api:latest
 ```
 
 ## Envs
 | Env | Type | Required |
 |---|---|---|
 | PORT | int | ✅ |
+| PROD | bool | ❌ |
 | NETLOG_URL | string | ❌ |
 | SENTRY_DSN | string | ❌ |
 
